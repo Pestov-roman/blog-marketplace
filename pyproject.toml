@@ -11,13 +11,23 @@ python = "^3.12"
 fastapi = "^0.110.0"
 uvicorn = {extras = ["standard"], version = "^0.27.1"}
 pydantic = {extras = ["email"], version = "^2.6.4"}
+pydantic-settings = "^2.9.1"
+sqlalchemy = "^2.0.40"
+asyncpg = "^0.29.0"
+aio-pika = "^9.3.1"
+aiobotocore = "^2.11.0"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.3.0"
 pre-commit = "^3.6.0"
+pytest = "^8.1.1"
+pytest-asyncio = "^0.23.5"
+pytest-cov = "^4.1.0"
 
 [tool.ruff]
-line-length = 120
+line-length = 88
 target-version = "py312"
 
 [tool.ruff.lint]
@@ -26,3 +36,8 @@ select = ["E", "F", "B", "I"]
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+addopts = "-v"
+testpaths = ["src/tests"]
+python_paths = ["src"]
