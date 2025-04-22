@@ -18,6 +18,7 @@ aio-pika = "^9.3.1"
 aiobotocore = "^2.11.0"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+celery = "^5.5.1"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.3.0"
@@ -25,6 +26,8 @@ pre-commit = "^3.6.0"
 pytest = "^8.1.1"
 pytest-asyncio = "^0.23.5"
 pytest-cov = "^4.1.0"
+alembic = "^1.15.2"
+psycopg2-binary = "^2.9.10"
 
 [tool.ruff]
 line-length = 88

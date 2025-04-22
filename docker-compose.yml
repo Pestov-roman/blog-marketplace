@@ -44,7 +44,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      POSTGRES_DB: marketplace_blog
     ports:
       - "5432:5432"
     healthcheck:

@@ -1,11 +1,11 @@
 from contextlib import asynccontextmanager
 
-from sqlalchemy.ext.asyncio import AsincEngine, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 
 from src.settings import settings
 
 
-def create_enginge() -> AsincEngine:
+def create_enginge() -> AsyncEngine:
     return create_async_engine(
         settings.sqlalchemy_database_uri,
         echo=settings.debug,
@@ -13,7 +13,7 @@ def create_enginge() -> AsincEngine:
     )
 
 
-engine: AsincEngine = create_enginge()
+engine: AsyncEngine = create_enginge()
 SessionFactory = async_sessionmaker(engine, expire_on_commit=False)
 
 
