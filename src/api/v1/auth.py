@@ -6,6 +6,7 @@ from src.auth.password import hash_password
 from src.auth.schemas import LoginIn, TokenOut
 from src.domain.models import User
 from src.infrastructure.uow.sqlalchemy import get_uow
+from src.tasks.email import send_registration_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -19,6 +20,7 @@ async def register(
     user = User.create(dto.email, hash_password(dto.password))
     await uow.users.add(user)
     await uow.commit()
+    send_registration_email.delay(user.email)
     token = create_access_token(user.id)
     response.set_cookie("access_token", token, httponly=True)
     return {"access_token": token}

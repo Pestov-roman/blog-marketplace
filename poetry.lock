@@ -205,6 +205,22 @@ files = [
 frozenlist = ">=1.1.0"
 
 [[package]]
+name = "aiosmtplib"
+version = "4.0.0"
+description = "asyncio SMTP client"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "aiosmtplib-4.0.0-py3-none-any.whl", hash = "sha256:33c72021cd9e9da495823952751e2dd927014a04a0eca711ee4af9812f2f04af"},
+    {file = "aiosmtplib-4.0.0.tar.gz", hash = "sha256:9629a0d8786ab1e5f790ebbbf5cbe7886fedf949a3f52fd7b27a0360f6233422"},
+]
+
+[package.extras]
+docs = ["furo (>=2023.9.10)", "sphinx (>=7.0.0)", "sphinx-autodoc-typehints (>=1.24.0)", "sphinx-copybutton (>=0.5.0)"]
+uvloop = ["uvloop (>=0.18)"]
+
+[[package]]
 name = "alembic"
 version = "1.15.2"
 description = "A database migration tool for SQLAlchemy."
@@ -465,6 +481,7 @@ click-plugins = ">=1.1.1"
 click-repl = ">=0.2.0"
 kombu = ">=5.5.2,<5.6"
 python-dateutil = ">=2.8.2"
+redis = {version = ">=4.5.2,<4.5.5 || >4.5.5,<6.0.0", optional = true, markers = "extra == \"redis\""}
 vine = ">=5.1.0,<6.0"
 
 [package.extras]
@@ -2151,6 +2168,22 @@ files = [
 ]
 
 [[package]]
+name = "redis"
+version = "5.2.1"
+description = "Python client for Redis database and key-value store"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "redis-5.2.1-py3-none-any.whl", hash = "sha256:ee7e1056b9aea0f04c6c2ed59452947f34c4940ee025f5dd83e6a6418b6989e4"},
+    {file = "redis-5.2.1.tar.gz", hash = "sha256:16f2e22dff21d5125e8481515e386711a34cbec50f0e44413dd7d9c060a54e0f"},
+]
+
+[package.extras]
+hiredis = ["hiredis (>=3.0.0)"]
+ocsp = ["cryptography (>=36.0.1)", "pyopenssl (==23.2.1)", "requests (>=2.31.0)"]
+
+[[package]]
 name = "rsa"
 version = "4.9.1"
 description = "Pure-Python RSA implementation"
@@ -2885,4 +2918,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "64ca724ce4ba70bbab8146c7dadca32dee3875abdf0ba31d5bf82129e8c89df4"
+content-hash = "ac6d81289ab5b570dd5256b41be3ed516981d91f7592772ec992c71c3c427449"

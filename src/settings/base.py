@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     rabbitmq_port: int = 5672
     rabbitmq_user: str | None = None
     rabbitmq_password: str | None = None
+    rabbitmq_dsn: str = "amqp://guest:guest@rabbitmq:5672//"
 
     s3_endpoint: str = "minio:9000"
     s3_access_key: str = "minioadmin"
@@ -30,6 +31,12 @@ class Settings(BaseSettings):
 
     jwt_secret_key: str = "supersecretkey"
     jwt_exp_minutes: int = 60
+
+    smtp_host: str = "mailhog"
+    smtp_port: int = 1025
+    smtp_user: str | None = None
+    smtp_password: str | None = None
+    smtp_from: str = "no-reply@blog-marketplace.local"
 
     model_config = SettingsConfigDict(
         env_file=".env",
