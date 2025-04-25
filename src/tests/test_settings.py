@@ -1,4 +1,4 @@
-from src.settings import settings
+from settings import settings
 
 
 def test_env_loaded():

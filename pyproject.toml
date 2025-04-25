@@ -32,6 +32,7 @@ psycopg2-binary = "^2.9.10"
 [tool.ruff]
 line-length = 88
 target-version = "py312"
+extend-ignore = ["B008"]
 
 [tool.ruff.lint]
 select = ["E", "F", "B", "I"]
@@ -41,6 +42,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
-addopts = "-v"
 testpaths = ["src/tests"]
-python_paths = ["src"]
