@@ -21,3 +21,13 @@ async def create_category(
     await uow.categories.add(category)
     await uow.commit()
     return category
+
+
+@router.get(
+    "",
+    response_model=list[CategoryOut],
+)
+async def list_categories(
+    uow: UnitOfWork = Depends(get_uow),
+):
+    return await uow.categories.all()

@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     s3_bucket: str = "images"
     s3_secure: bool = False
 
+    jwt_secret_key: str = "supersecretkey"
+    jwt_exp_minutes: int = 60
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
