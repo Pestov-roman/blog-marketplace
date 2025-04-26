@@ -11,12 +11,12 @@ jobs:
 
     services:
       postgres:
-        image: postgres:17
+        image: postgres:16
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: marketplace_blog_test
-        ports: ["55432:5432"]
+        ports: ["5432:5432"]
         options: >-
           --health-cmd="pg_isready -U postgres"
           --health-interval=10s
@@ -26,6 +26,11 @@ jobs:
       rabbitmq:
         image: rabbitmq:3-management
         ports: ["5672:5672"]
+        options: >-
+          --health-cmd="rabbitmq-diagnostics check_port_connectivity"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
       minio:
         image: minio/minio
@@ -60,7 +65,7 @@ jobs:
 
       - name: Apply migrations
         env:
-          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:55432/marketplace_blog_test
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/marketplace_blog_test
         run: |
           poetry run alembic upgrade head
 
@@ -71,7 +76,7 @@ jobs:
 
       - name: Run Tests
         env:
-          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:55432/marketplace_blog_test
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/marketplace_blog_test
           MINIO_ENDPOINT: http://localhost:9000
           MINIO_ACCESS_KEY: minio
           MINIO_SECRET_KEY: minio123
