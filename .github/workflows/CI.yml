@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "dev", "feature/**"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: marketplace_blog_test
+        ports: ["55432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      rabbitmq:
+        image: rabbitmq:3-management
+        ports: ["5672:5672"]
+
+      minio:
+        image: minio/minio
+        options: --health-cmd="curl -f http://localhost:9000/minio/health/live || exit 1" --health-interval=10s
+        command: server /data --console-address ":9001"
+        env:
+          MINIO_ACCESS_KEY: minio
+          MINIO_SECRET_KEY: minio123
+        ports: ["9000:9000", "9001:9001"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: 1.8.2
+
+      - name: Cache venv
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('pyproject.toml') }}
+
+      - name: Install deps
+        run: poetry install --no-interaction --with dev
+
+      - name: Apply migrations
+        env:
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:55432/marketplace_blog_test
+        run: |
+          poetry run alembic upgrade head
+
+      - name: Run Linters
+        run: |
+          poetry run ruff check src
+          poetry run mypy src
+
+      - name: Run Tests
+        env:
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:55432/marketplace_blog_test
+          MINIO_ENDPOINT: http://localhost:9000
+          MINIO_ACCESS_KEY: minio
+          MINIO_SECRET_KEY: minio123
+        run: |
+          poetry run pytest -q
