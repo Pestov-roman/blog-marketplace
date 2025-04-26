@@ -11,6 +11,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      init-minio:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -29,6 +31,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      init-minio:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "celery", "-A", "src.tasks.worker", "inspect", "ping", "-d", "celery@%HOSTNAME%"]
       interval: 30s
@@ -43,6 +47,14 @@ services:
     depends_on:
       rabbitmq:  { condition: service_healthy }
     restart: always
+
+  init-minio:
+    build: .
+    command: python -m src.scripts.init_s3
+    depends_on:
+      minio:
+        condition: service_healthy
+    restart: "no"
 
   db:
     image: postgres:16
@@ -93,6 +105,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
 
 volumes:
   db-data:

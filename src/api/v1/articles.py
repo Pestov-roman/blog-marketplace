@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from src.application.ports.uow import UnitOfWork
 from src.auth.dependencies import get_current_user
@@ -51,3 +51,30 @@ async def delete_article(
 ):
     await uow.articles.soft_delete(article_id, datetime.utcnow())
     await uow.commit()
+
+
+@router.get("/{article_id}", response_model=ArticleOut)
+async def update_article(
+    article_id: int,
+    dto: ArticleIn,
+    uow: UnitOfWork = Depends(get_uow),
+    user=Depends(get_current_user),
+):
+    art = await uow.articles.get(article_id)
+    if not art:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Article not found",
+        )
+    if art.author_id != user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not allowed to update this article",
+        )
+    art.title = dto.title
+    art.content = dto.content
+    art.image_url = dto.image_url or art.image_url
+    art.category_id = dto.category_id
+    await uow.articles.update(art)
+    await uow.commit()
+    return art

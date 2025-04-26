@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from src.api.v1 import articles, auth, categories
+from src.api.v1 import articles, auth, categories, uploads
 from src.middleware.auth import AuthMiddleware
 from src.settings import settings
 
@@ -9,3 +9,4 @@ app.add_middleware(AuthMiddleware)
 app.include_router(auth.router)
 app.include_router(categories.router)
 app.include_router(articles.router)
+app.include_router(uploads.router)
