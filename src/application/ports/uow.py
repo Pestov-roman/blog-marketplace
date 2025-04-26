@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
-from src.application.ports import (
+from src.application.ports.repositories import (
     ArticleRepository,
     CategoryRepository,
     UserRepository,

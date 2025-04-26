@@ -4,11 +4,12 @@ from datetime import datetime
 from typing import Sequence, Tuple
 from uuid import UUID
 
-from domain.models import Article, Category, User
-from infrastructure.orm import ArticleORM, CategoryORM, UserORM
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+
+from src.domain.models import Article, Category, User
+from src.infrastructure.orm import ArticleORM, CategoryORM, UserORM
 
 
 class SQLUserRepo:

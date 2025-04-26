@@ -6,7 +6,6 @@ import sys
 from typing import Any
 
 import structlog
-from structlog.processors import JSONRenderer
 from structlog.typing import EventDict
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -25,30 +24,26 @@ def _add_logger_name(_: Any, __: str, event: EventDict) -> EventDict:
 
 
 def configure_logging() -> None:
-    shared_processors = [
-        structlog.processors.TimeStamper(fmt="iso"),
-        _add_logger_name,
-        _add_log_level,
-    ]
-
-    structlog.configure(
-        processors=shared_processors
-        + ([JSONRenderer()] if LOG_JSON else [structlog.dev.ConsoleRenderer()]),
-        wrapper_class=structlog.male_filtering_bound_logger(
-            logging.getLevelName(LOG_LEVEL)
-        ),
-        logger_factory=structlog.PrintLoggerFactory(file=sys.stdout),
-    )
+    timestamper = structlog.processors.TimeStamper(fmt="iso")
 
     logging.basicConfig(
-        level=LOG_LEVEL,
-        handlers=[
-            structlog.stdlib.ProcessorFormatter.wrap_for_formatter(
-                logging.StreamHandler(),
-                foreign_pre_chain=shared_processors,
-                processor=(
-                    JSONRenderer() if LOG_JSON else structlog.dev.ConsoleRenderer()
-                ),
-            )
+        format="%(message)s",
+        stream=sys.stdout,
+        level=logging.INFO,
+    )
+
+    structlog.configure(
+        processors=[
+            structlog.stdlib.filter_by_level,
+            structlog.stdlib.add_logger_name,
+            structlog.stdlib.add_log_level,
+            structlog.processors.StackInfoRenderer(),
+            structlog.processors.format_exc_info,
+            timestamper,
+            structlog.processors.JSONRenderer(),
         ],
+        context_class=dict,
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        wrapper_class=structlog.stdlib.BoundLogger,
+        cache_logger_on_first_use=True,
     )

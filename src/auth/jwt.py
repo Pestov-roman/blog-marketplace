@@ -2,7 +2,8 @@ from datetime import datetime, timedelta
 from uuid import UUID
 
 from jose import JWTError, jwt
-from settings.base import settings
+
+from src.settings import settings
 
 ALGORITHM = "HS256"
 
