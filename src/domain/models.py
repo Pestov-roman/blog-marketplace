@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from uuid import UUID, uuid4
 
+from passlib.hash import bcrypt
+
 
 @dataclass(slots=True, frozen=True)
 class User:
@@ -13,8 +15,10 @@ class User:
     created_at: datetime = field(default_factory=datetime.utcnow)
 
     @classmethod
-    def create(cls, email: str, hashed_password: str) -> "User":
-        return cls(id=uuid4(), email=email.lower(), hashed_password=hashed_password)
+    def create(cls, email: str, password: str) -> "User":
+        return cls(
+            id=uuid4(), email=email.lower(), hashed_password=bcrypt.hash(password)
+        )
 
 
 @dataclass(slots=True)
@@ -28,6 +32,7 @@ class Category:
         return cls(id=None, title=title.strip())
 
 
+@dataclass(slots=True)
 class Article:
     id: int | None
     title: str

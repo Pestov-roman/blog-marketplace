@@ -9,7 +9,7 @@ ALGORITHM = "HS256"
 
 
 def create_access_token(sub: str | UUID) -> str:
-    expire = datetime.utcnow() + timedelta(minutes=settings.jwt_exp_minutes)
+    expire = datetime.utcnow() + timedelta(minutes=settings.jwt_expires_minutes)
     payload = {
         "sub": str(sub),
         "exp": expire,

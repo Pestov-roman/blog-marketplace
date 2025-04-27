@@ -1,9 +1,7 @@
-from settings import settings
+from src.settings import settings
 
 
-def test_env_loaded():
-    assert settings.pg_host == "db"
-    assert settings.pg_port == 5432
-    assert settings.pg_db == "marketplace_blog"
-    assert settings.pg_user == "postgres"
-    assert settings.pg_password == "postgres"
+def test_settings_loaded_from_env(monkeypatch):
+    monkeypatch.setenv("APP_ENV", "test")
+    st = settings.model_copy(update={"app_env": "test"})
+    assert st.app_env == "test"

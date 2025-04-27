@@ -1,8 +1,9 @@
 import pytest
-from domain.models import User
-from infrastructure.orm import Base
-from infrastructure.repositories.sqlalchemy import SQLUserRepo
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
+from src.domain.models import User
+from src.infrastructure.orm import Base
+from src.infrastructure.repositories.sqlalchemy import SQLUserRepo
 
 
 @pytest.fixture

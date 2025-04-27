@@ -1,13 +1,8 @@
-from celery import Celery
+from __future__ import annotations
 
-# Инициализация Celery
-celery = Celery(
-    "blog_marketplace", broker="amqp://guest:guest@rabbitmq:5672//", backend="rpc://"
-)
-
-celery.autodiscover_tasks(["src.tasks"])
+from src.infrastructure.celery_app import celery_app
 
 
-@celery.task(name="health_check")
-def health_check():
+@celery_app.task(name="health_check")
+def health_check() -> str:
     return "Celery is working fine!"

@@ -23,7 +23,7 @@ services:
   worker:
     build: .
     env_file: .env
-    command: celery -A src.tasks.worker worker --loglevel=info -Q default
+    command: celery -A src.infrastructure.celery_app worker --loglevel=info -Q default
     depends_on:
       db:
         condition: service_healthy
@@ -43,7 +43,7 @@ services:
   beat:
     build: .
     env_file: .env
-    command: celery -A src.tasks.worker beat --loglevel=info
+    command: celery -A src.infrastructure.celery_app beat   --loglevel=info
     depends_on:
       rabbitmq:
         condition: service_healthy

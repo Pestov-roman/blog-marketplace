@@ -26,6 +26,7 @@ httpx = "^0.28.1"
 python-multipart = "^0.0.20"
 alembic = "^1.15.2"
 psycopg2-binary = "^2.9.9"
+async-asgi-testclient = "^1.4.11"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.3.0"
@@ -52,6 +53,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 testpaths = ["src/tests"]
+pythonpath  = ["./"]
 
 [tool.mypy]
 python_version = "3.12"

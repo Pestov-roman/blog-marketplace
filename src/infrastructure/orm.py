@@ -35,18 +35,10 @@ class UserORM(Base):
 
     @classmethod
     def from_entity(cls, user: User) -> "UserORM":
-        return cls(
-            id=user.id,
-            email=user.email,
-            hashed_password=user.hashed_password,
-        )
+        return cls(**user.model_dump())
 
     def to_entity(self) -> User:
-        return User(
-            id=self.id,
-            email=self.email,
-            hashed_password=self.hashed_password,
-        )
+        return User(**self.__dict__)
 
 
 class CategoryORM(Base):
@@ -58,16 +50,10 @@ class CategoryORM(Base):
 
     @classmethod
     def from_entity(cls, category: Category) -> "CategoryORM":
-        return cls(
-            id=category.id,
-            title=category.title,
-        )
+        return cls(**category.model_dump())
 
     def to_entity(self) -> Category:
-        return Category(
-            id=self.id,
-            title=self.title,
-        )
+        return Category(**self.__dict__)
 
 
 class ArticleORM(Base):
@@ -107,15 +93,7 @@ class ArticleDeletedORM(Base):
 
     @classmethod
     def from_entity(cls, article: Article) -> "ArticleDeletedORM":
-        return cls(
-            id=article.id,
-            title=article.title,
-            content=article.content,
-        )
+        return cls(**article.model_dump())
 
     def to_entity(self) -> Article:
-        return Article(
-            id=self.id,
-            title=self.title,
-            content=self.content,
-        )
+        return Article(**self.__dict__)
