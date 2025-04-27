@@ -17,7 +17,7 @@ async def cleanup_deleted_articles(days: int = 30) -> None:
 
     cutoff = datetime.utcnow() - timedelta(days=days)
 
-    async def _cleanup():
+    async def _cleanup() -> None:
         async with async_session() as s:
             await s.execute(
                 delete(ArticleDeletedORM).where(ArticleDeletedORM.deleted_at < cutoff)

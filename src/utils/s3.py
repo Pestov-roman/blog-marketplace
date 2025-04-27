@@ -5,6 +5,7 @@ from botocore.client import Config
 
 from src.settings import settings
 
+S3_CLIENT: boto3.client | None = None
 _SESSION: boto3.Session | None = None
 
 

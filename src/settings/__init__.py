@@ -1,4 +1,4 @@
-from .base import Settings, get_settings
+from src.settings.base import Settings, get_settings
 
 settings: Settings = get_settings()
 

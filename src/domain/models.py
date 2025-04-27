@@ -38,6 +38,7 @@ class Article:
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime = field(default_factory=datetime.utcnow)
     is_deleted: bool = False
+    model_config = {"from_attributes": True}
 
     @classmethod
     def create(

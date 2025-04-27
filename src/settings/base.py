@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     app_name: str = "local"
     app_env: str = "local"
     debug: bool = True
-    jwt_secret_key: str
+    jwt_secret_key: str = "supersecretkey"
     jwt_algorithm: str = "HS256"
     jwt_expires_minutes: int = 60 * 24
 
@@ -28,9 +28,6 @@ class Settings(BaseSettings):
     s3_secret_key: str = "minioadmin"
     s3_bucket: str = "images"
     s3_secure: bool = False
-
-    jwt_secret_key: str = "supersecretkey"
-    jwt_exp_minutes: int = 60
 
     smtp_host: str = "mailhog"
     smtp_port: int = 1025

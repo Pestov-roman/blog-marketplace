@@ -13,6 +13,9 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
+from src.auth.roles import Role
+from src.domain.models import Article, Category, User
+
 
 class Base(DeclarativeBase):
     pass
@@ -27,8 +30,23 @@ class UserORM(Base):
     email: Mapped[str] = mapped_column(String(length=225), unique=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(225), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
-
+    role = mapped_column(String(10), nullable=False, default=Role.READER.value)
     articles: Mapped[list["ArticleORM"]] = relationship(back_populates="author")
+
+    @classmethod
+    def from_entity(cls, user: User) -> "UserORM":
+        return cls(
+            id=user.id,
+            email=user.email,
+            hashed_password=user.hashed_password,
+        )
+
+    def to_entity(self) -> User:
+        return User(
+            id=self.id,
+            email=self.email,
+            hashed_password=self.hashed_password,
+        )
 
 
 class CategoryORM(Base):
@@ -37,6 +55,19 @@ class CategoryORM(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     title: Mapped[str] = mapped_column(String(length=100), unique=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+
+    @classmethod
+    def from_entity(cls, category: Category) -> "CategoryORM":
+        return cls(
+            id=category.id,
+            title=category.title,
+        )
+
+    def to_entity(self) -> Category:
+        return Category(
+            id=self.id,
+            title=self.title,
+        )
 
 
 class ArticleORM(Base):
@@ -56,6 +87,13 @@ class ArticleORM(Base):
     category: Mapped["CategoryORM"] = relationship()
     author: Mapped["UserORM"] = relationship(back_populates="articles")
 
+    @classmethod
+    def from_entity(cls, article: Article) -> "ArticleORM":
+        return cls(**article.model_dump(exclude_none=True))
+
+    def to_entity(self) -> Article:
+        return Article.model_validate(self)
+
 
 class ArticleDeletedORM(Base):
     __tablename__ = "article_deleted"
@@ -66,3 +104,18 @@ class ArticleDeletedORM(Base):
     content: Mapped[str] = mapped_column(Text)
     image_url: Mapped[str | None] = mapped_column(String(length=225))
     deleted_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+
+    @classmethod
+    def from_entity(cls, article: Article) -> "ArticleDeletedORM":
+        return cls(
+            id=article.id,
+            title=article.title,
+            content=article.content,
+        )
+
+    def to_entity(self) -> Article:
+        return Article(
+            id=self.id,
+            title=self.title,
+            content=self.content,
+        )
