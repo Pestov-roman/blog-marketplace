@@ -1,48 +1,59 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from passlib.hash import bcrypt
+from pydantic import BaseModel, Field
+
+from src.auth.roles import Role
 
 
-@dataclass(slots=True, frozen=True)
-class User:
+class User(BaseModel):
     id: UUID
     email: str
     hashed_password: str
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    role: Role
+    created_at: datetime = Field(default_factory=lambda: datetime.now())
 
     @classmethod
-    def create(cls, email: str, password: str) -> "User":
+    def create(
+        cls, email: str, password: str, role: Role | str = Role.READER
+    ) -> "User":
+        if isinstance(role, str):
+            role = Role.from_str(role)
         return cls(
-            id=uuid4(), email=email.lower(), hashed_password=bcrypt.hash(password)
+            id=uuid4(),
+            email=email,
+            hashed_password=bcrypt.hash(password),
+            role=role,
         )
 
 
-@dataclass(slots=True)
-class Category:
+class Category(BaseModel):
     id: int | None
-    title: str
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    # принимаем и title, и name (alias)
+    title: str = Field(alias="name")
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+    model_config = {"populate_by_name": True}
 
     @classmethod
     def create(cls, title: str) -> "Category":
         return cls(id=None, title=title.strip())
 
 
-@dataclass(slots=True)
-class Article:
+class Article(BaseModel):
     id: int | None
     title: str
     content: str
     author_id: UUID
-    category_id: int
+    category_id: int | None
     image_url: str | None = None
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    updated_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     is_deleted: bool = False
+
     model_config = {"from_attributes": True}
 
     @classmethod
@@ -52,10 +63,10 @@ class Article:
         title: str,
         content: str,
         author_id: UUID,
-        category_id: int,
+        category_id: int | None = None,
         image_url: str | None = None,
     ) -> "Article":
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         return cls(
             id=None,
             title=title.strip(),
@@ -69,8 +80,4 @@ class Article:
         )
 
 
-__all__ = [
-    "User",
-    "Category",
-    "Article",
-]
+__all__ = ["User", "Category", "Article", "Role"]

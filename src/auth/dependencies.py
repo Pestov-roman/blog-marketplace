@@ -26,7 +26,10 @@ async def get_current_user(
     token: str = Depends(_extract_token),
     uow: UnitOfWork = Depends(get_uow),
 ):
-    payload = verify_token(token)
+    if not (payload := verify_token(token)):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+        )
     user_id = UUID(payload["sub"])
     role: Role = Role.from_str(payload["role"])
     user = await uow.users.by_id(user_id)
@@ -40,8 +43,11 @@ async def get_current_user(
 def require_roles(*roles: Role):
     def _checker(user=Depends(get_current_user)):
         if user["role"] not in roles:
+            role_values = [r.value for r in roles]
+            user_role = user["role"].value
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden"
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Required roles: {role_values}, but got {user_role}",
             )
         return user["instance"]
 

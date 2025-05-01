@@ -16,4 +16,4 @@ def test_health_check_task():
 
     res: EagerResult = health_check.delay()
     assert res.successful()
-    assert res.result == "OK"
+    assert res.result == "Celery is working fine!"

@@ -24,7 +24,7 @@ async def create_article(
         content=dto.content,
         image_url=dto.image_url,
         category_id=dto.category_id,
-        author_id=user.id,
+        author_id=user["instance"].id,
     )
     await uow.articles.add(article)
     await uow.commit()
@@ -58,6 +58,20 @@ async def delete_article(
 
 
 @router.get("/{article_id}", response_model=ArticleOut)
+async def get_article(
+    article_id: int,
+    uow: UnitOfWork = Depends(get_uow),
+) -> Article:
+    art = await uow.articles.get(article_id)
+    if not art:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Article not found",
+        )
+    return art
+
+
+@router.put("/{article_id}", response_model=ArticleOut)
 async def update_article(
     article_id: int,
     dto: ArticleIn,
@@ -71,7 +85,7 @@ async def update_article(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Article not found",
         )
-    if art.author_id != user.id:
+    if art.author_id != user["instance"].id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You are not allowed to update this article",

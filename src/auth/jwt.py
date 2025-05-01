@@ -1,26 +1,27 @@
 from datetime import datetime, timedelta
-from uuid import UUID
+from typing import Any
 
-from jose import JWTError, jwt
+from jose import jwt
 
+from src.auth.roles import Role
 from src.settings import settings
 
 ALGORITHM = "HS256"
 
 
-def create_access_token(sub: str | UUID) -> str:
-    expire = datetime.utcnow() + timedelta(minutes=settings.jwt_expires_minutes)
-    payload = {
-        "sub": str(sub),
-        "exp": expire,
+def create_access_token(user_id: str, role: Role | str) -> str:
+    if isinstance(role, Role):
+        role = role.value
+    to_encode = {
+        "sub": str(user_id),
+        "role": role,
+        "exp": datetime.utcnow() + timedelta(minutes=settings.jwt_expires_minutes),
     }
-    encoded_jwt = jwt.encode(payload, settings.jwt_secret_key, algorithm=ALGORITHM)
-    return encoded_jwt
+    return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=ALGORITHM)
 
 
-def verify_token(token: str) -> str | None:
+def verify_token(token: str) -> dict[str, Any] | None:
     try:
-        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[ALGORITHM])
-        return payload.get("sub")
-    except JWTError:
+        return jwt.decode(token, settings.jwt_secret_key, algorithms=[ALGORITHM])
+    except jwt.JWTError:
         return None

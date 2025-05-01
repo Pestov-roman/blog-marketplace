@@ -18,6 +18,7 @@ class SQLUserRepo:
 
     async def add(self, user: User) -> None:
         self.session.add(UserORM.from_entity(user))
+        await self.session.flush()
 
     async def by_email(self, email: str) -> User | None:
         row = await self.session.scalar(select(UserORM).where(UserORM.email == email))
@@ -35,7 +36,10 @@ class SQLCategoryRepo:
         self.session = session
 
     async def add(self, category: Category) -> None:
-        self.session.add(CategoryORM.from_entity(category))
+        orm = CategoryORM.from_entity(category)
+        self.session.add(orm)
+        await self.session.flush()
+        category.id = orm.id
 
     async def list(self) -> list[Category]:
         rows: Sequence[CategoryORM] = await self.session.scalars(
@@ -57,19 +61,22 @@ class SQLArticleRepo:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    # C
     async def add(self, article: Article) -> None:
-        self.session.add(ArticleORM.from_entity(article))
+        orm = ArticleORM.from_entity(article)
+        self.session.add(orm)
+        await self.session.flush()
+        article.id = orm.id
 
-    # R
-    async def get(self, art_id: int) -> Article | None:
+    async def get(self, id_: int) -> Article | None:
         stmt = (
             select(ArticleORM)
+            .where(ArticleORM.id == id_)
             .options(selectinload(ArticleORM.category))
-            .where(ArticleORM.id == art_id, ArticleORM.is_deleted.is_(False))
+            .options(selectinload(ArticleORM.author))
         )
-        row = await self.session.scalar(stmt)
-        return row.to_entity() if row else None
+        result = await self.session.execute(stmt)
+        article = result.scalar_one_or_none()
+        return article.to_entity() if article else None
 
     async def list(
         self,
@@ -114,9 +121,16 @@ class SQLArticleRepo:
             )
         )
 
-    async def soft_delete(self, art_id: int, deleted_at: datetime) -> None:
+    async def soft_delete(
+        self, art_id: int, deleted_at: datetime | None = None
+    ) -> None:
+        if deleted_at is None:
+            deleted_at = datetime.utcnow()
         await self.session.execute(
             update(ArticleORM)
             .where(ArticleORM.id == art_id)
             .values(is_deleted=True, updated_at=deleted_at)
         )
+
+    async def by_id(self, id_: int) -> Article | None:
+        return await self.get(id_)

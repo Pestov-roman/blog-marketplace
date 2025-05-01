@@ -24,6 +24,11 @@ class SQLAlchemyUoW(UnitOfWork):
         self.articles = SQLArticleRepo(session)
 
     async def __aenter__(self) -> "SQLAlchemyUoW":
+        if hasattr(self.session, "__anext__"):
+            self.session = await self.session.__anext__()
+            self.users = SQLUserRepo(self.session)
+            self.categories = SQLCategoryRepo(self.session)
+            self.articles = SQLArticleRepo(self.session)
         return self
 
     async def __aexit__(
@@ -33,7 +38,6 @@ class SQLAlchemyUoW(UnitOfWork):
             await self.commit()
         else:
             await self.rollback()
-        await self.session.close()
 
     async def commit(self) -> None:
         await self.session.commit()

@@ -4,17 +4,18 @@ from httpx import AsyncClient
 
 @pytest.mark.asyncio
 async def test_login_and_protected_endpoint(client: AsyncClient, session):
+    from src.auth.roles import Role
     from src.domain.models import User
     from src.infrastructure.uow.sqlalchemy import SQLAlchemyUoW
 
     uow = SQLAlchemyUoW(session)
-    async with uow:
-        await uow.users.add(User.create(email="admin@site.com", password="secret"))
+    user = User.create(email="admin@site.com", password="secret", role=Role.ADMIN)
+    await uow.users.add(user)
+    await uow.commit()
 
     resp = await client.post(
         "/auth/login",
-        data={"username": "admin@site.com", "password": "secret"},
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        json={"email": "admin@site.com", "password": "secret"},
     )
     assert resp.status_code == 200
     token = resp.json()["access_token"]

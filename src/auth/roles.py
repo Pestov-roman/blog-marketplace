@@ -3,7 +3,7 @@ from enum import StrEnum
 
 class Role(StrEnum):
     ADMIN = "admin"
-    AUTHOR = "editor"
+    AUTHOR = "author"
     READER = "reader"
 
     @classmethod

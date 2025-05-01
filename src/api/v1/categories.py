@@ -34,4 +34,4 @@ async def list_categories(
     uow: UnitOfWork = Depends(get_uow),
     current_user=Depends(require_roles(Role.ADMIN)),
 ) -> list[Category]:
-    return await uow.categories.all()
+    return await uow.categories.list()

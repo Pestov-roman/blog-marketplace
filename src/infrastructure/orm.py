@@ -30,15 +30,25 @@ class UserORM(Base):
     email: Mapped[str] = mapped_column(String(length=225), unique=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(225), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
-    role = mapped_column(String(10), nullable=False, default=Role.READER.value)
+    role: Mapped[str] = mapped_column(
+        String(10), nullable=False, default=Role.READER.value
+    )
     articles: Mapped[list["ArticleORM"]] = relationship(back_populates="author")
 
     @classmethod
     def from_entity(cls, user: User) -> "UserORM":
-        return cls(**user.model_dump())
+        data = user.model_dump()
+        data["role"] = str(user.role)
+        return cls(**data)
 
     def to_entity(self) -> User:
-        return User(**self.__dict__)
+        return User(
+            id=self.id,
+            email=self.email,
+            hashed_password=self.hashed_password,
+            role=Role.from_str(self.role),
+            created_at=self.created_at,
+        )
 
 
 class CategoryORM(Base):
@@ -53,7 +63,11 @@ class CategoryORM(Base):
         return cls(**category.model_dump())
 
     def to_entity(self) -> Category:
-        return Category(**self.__dict__)
+        return Category(
+            id=self.id,
+            title=self.title,
+            created_at=self.created_at,
+        )
 
 
 class ArticleORM(Base):
@@ -62,13 +76,15 @@ class ArticleORM(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     title: Mapped[str] = mapped_column(String(length=225), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
-    image_url: Mapped[str] = mapped_column(String(length=225))
+    image_url: Mapped[str] = mapped_column(String(length=225), nullable=True)
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=func.now(), onupdate=func.now()
     )
-    category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
+    category_id: Mapped[int | None] = mapped_column(
+        ForeignKey("categories.id"), nullable=True
+    )
     author_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
     category: Mapped["CategoryORM"] = relationship()
     author: Mapped["UserORM"] = relationship(back_populates="articles")
@@ -78,7 +94,17 @@ class ArticleORM(Base):
         return cls(**article.model_dump(exclude_none=True))
 
     def to_entity(self) -> Article:
-        return Article.model_validate(self)
+        return Article(
+            id=self.id,
+            title=self.title,
+            content=self.content,
+            author_id=self.author_id,
+            category_id=self.category_id,
+            image_url=self.image_url,
+            created_at=self.created_at,
+            updated_at=self.updated_at,
+            is_deleted=self.is_deleted,
+        )
 
 
 class ArticleDeletedORM(Base):
@@ -96,4 +122,14 @@ class ArticleDeletedORM(Base):
         return cls(**article.model_dump())
 
     def to_entity(self) -> Article:
-        return Article(**self.__dict__)
+        return Article(
+            id=self.id,
+            title=self.title,
+            content=self.content,
+            image_url=self.image_url,
+            created_at=self.deleted_at,
+            updated_at=self.deleted_at,
+            is_deleted=True,
+            author_id=None,  # type: ignore
+            category_id=None,  # type: ignore
+        )

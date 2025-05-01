@@ -2,6 +2,7 @@ import asyncio
 from typing import AsyncGenerator, Generator
 
 import pytest
+import pytest_asyncio
 from async_asgi_testclient import TestClient
 from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -14,13 +15,20 @@ from src.settings import settings
 
 
 @pytest.fixture(scope="session")
+def async_session_maker(
+    _engine,
+) -> async_sessionmaker[AsyncSession]:
+    return async_sessionmaker(_engine, class_=AsyncSession, expire_on_commit=False)
+
+
+@pytest.fixture(scope="session")
 def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
     loop = asyncio.new_event_loop()
     yield loop
     loop.close()
 
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 async def _engine():
     engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
     async with engine.begin() as conn:
@@ -29,12 +37,14 @@ async def _engine():
     await engine.dispose()
 
 
-@pytest.fixture
-async def session(_engine) -> AsyncGenerator[AsyncSession, None]:
-    async_session = async_sessionmaker(_engine, expire_on_commit=False)
-    async with async_session() as ses:
-        yield ses
-        await ses.rollback()
+@pytest_asyncio.fixture
+async def session(async_session_maker) -> AsyncSession:
+    async with async_session_maker() as session:
+        async with session.begin():
+            for table in reversed(Base.metadata.sorted_tables):
+                await session.execute(table.delete())
+            await session.commit()
+        yield session
 
 
 @pytest.fixture
@@ -44,7 +54,7 @@ def app(session: AsyncSession) -> FastAPI:
     return real_app
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def client(app: FastAPI) -> AsyncGenerator[TestClient, None]:
     async with TestClient(app) as c:
         yield c
@@ -52,6 +62,9 @@ async def client(app: FastAPI) -> AsyncGenerator[TestClient, None]:
 
 @pytest.fixture(autouse=True)
 def _monkeypatch_s3(monkeypatch):
+    if not hasattr(settings, "s3_bucket"):
+        settings.s3_bucket = "test-bucket"
+
     class _Dummy:
         def put_object(self, **kw): ...
         def list_buckets(self):
@@ -60,6 +73,11 @@ def _monkeypatch_s3(monkeypatch):
         def create_bucket(self, **kw): ...
 
     monkeypatch.setattr("src.utils.s3._get_client", lambda: _Dummy())
+
+
+@pytest.fixture(autouse=True)
+def _monkeypatch_jwt(monkeypatch):
+    monkeypatch.setattr("src.settings.base.settings.jwt_secret_key", "test_secret_key")
 
 
 @pytest.fixture(autouse=True, scope="session")

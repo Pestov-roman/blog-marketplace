@@ -1,43 +1,43 @@
-from uuid import uuid4
-
 import pytest
 from httpx import AsyncClient
-from pydantic import HttpUrl
 
 
 @pytest.mark.asyncio
 async def test_create_and_get_article(client: AsyncClient, session):
+    from src.auth.roles import Role
     from src.domain.models import Category, User
     from src.infrastructure.uow.sqlalchemy import SQLAlchemyUoW
 
     uow = SQLAlchemyUoW(session)
-    author = User.create(email="a@b.c", password="pwd")
-    category = Category(id=uuid4(), name="python")
+    author = User.create(email="a@b.c", password="pwd", role=Role.AUTHOR)
+    category = Category.create(title="python")
 
-    async with uow:
-        await uow.users.add(author)
-        await uow.categories.add(category)
+    await uow.users.add(author)
+    await uow.categories.add(category)
+    await uow.commit()
 
     token = (
         await client.post(
             "/auth/login",
-            data={"username": author.email, "password": "pwd"},
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            json={"email": "a@b.c", "password": "pwd"},
         )
     ).json()["access_token"]
 
-    payload = {
-        "title": "pytest tips",
-        "content": "useful stuff",
-        "category_id": str(category.id),
-        "image_url": HttpUrl("http://fake/img.png"),
+    article_data = {
+        "title": "Test Article",
+        "content": "Test Content",
+        "category_id": category.id,
+        "image_url": "https://example.com/image.jpg",
     }
+
     resp = await client.post(
-        "/articles", json=payload, headers={"Authorization": f"Bearer {token}"}
+        "/articles",
+        json=article_data,
+        headers={"Authorization": f"Bearer {token}"},
     )
     assert resp.status_code == 201
-    art_id = resp.json()["id"]
+    article_id = resp.json()["id"]
 
-    resp = await client.get(f"/articles/{art_id}")
+    resp = await client.get(f"/articles/{article_id}")
     assert resp.status_code == 200
-    assert resp.json()["title"] == "pytest tips"
+    assert resp.json()["title"] == article_data["title"]

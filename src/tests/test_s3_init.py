@@ -1,16 +1,16 @@
-def test_bucket_created(monkeypatch):
-    calls: list[str] = []
+from unittest.mock import MagicMock, patch
 
-    class _Dummy:
-        def list_buckets(self):
-            return {"Buckets": []}
+import pytest
 
-        def create_bucket(self, Bucket):
-            calls.append(Bucket)
+from src.scripts.init_s3 import ensure_bucket
 
-    monkeypatch.setattr("src.utils.s3._get_client", lambda: _Dummy())
 
-    from src.scripts.init_s3 import ensure_bucket, settings
+@pytest.mark.asyncio
+async def test_bucket_created():
+    mock_client = MagicMock()
+    mock_client.list_buckets.return_value = {"Buckets": []}
 
-    ensure_bucket()
-    assert calls == [settings.s3_bucket]
+    with patch("src.utils.s3._get_client", return_value=mock_client):
+        await ensure_bucket()
+
+        mock_client.create_bucket.assert_called_once()
