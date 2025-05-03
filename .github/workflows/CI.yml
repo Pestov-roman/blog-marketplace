@@ -74,9 +74,11 @@ jobs:
 
       - name: Initialize MinIO
         env:
-          MINIO_ENDPOINT: http://localhost:9000
-          MINIO_ACCESS_KEY: minio
-          MINIO_SECRET_KEY: minio123
+          APP_ENV: ci
+          S3_ENDPOINT: http://localhost:9000
+          S3_ACCESS_KEY: minio
+          S3_SECRET_KEY: minio123
+          S3_BUCKET: images
         run: |
           poetry run python -m src.scripts.init_s3
 
