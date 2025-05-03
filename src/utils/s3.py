@@ -8,13 +8,13 @@ from src.settings import settings
 _SESSION: boto3.Session | None = None
 
 
-def _get_client() -> boto3.client:
+def _get_client(endpoint_url: str | None = None) -> boto3.client:
     global _SESSION
     if _SESSION is None:
         _SESSION = boto3.Session()
     return _SESSION.client(
         service_name="s3",
-        endpoint_url=settings.s3_endpoint,
+        endpoint_url=endpoint_url or settings.s3_endpoint,
         aws_access_key_id=settings.s3_access_key,
         aws_secret_access_key=settings.s3_secret_key,
         config=Config(signature_version="s3v4"),
