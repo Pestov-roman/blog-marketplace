@@ -1,7 +1,7 @@
-from typing import Callable
+from typing import Awaitable, Callable
 
 import structlog
-from fastapi import Request, status
+from fastapi import Request, Response, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -11,7 +11,9 @@ log = structlog.get_logger("error-handler")
 
 
 class ErrorMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next: Callable) -> JSONResponse:
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         try:
             return await call_next(request)
         except AppError as exc:

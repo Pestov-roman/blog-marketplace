@@ -10,4 +10,6 @@ async def ensure_bucket() -> None:
 
 
 if __name__ == "__main__":
-    ensure_bucket()
+    import asyncio
+
+    asyncio.run(ensure_bucket())

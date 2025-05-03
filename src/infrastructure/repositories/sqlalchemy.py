@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Sequence, Tuple
+from datetime import UTC, datetime
+from typing import cast
 from uuid import UUID
 
 from sqlalchemy import delete, func, select, update
@@ -42,9 +42,10 @@ class SQLCategoryRepo:
         category.id = orm.id
 
     async def list(self) -> list[Category]:
-        rows: Sequence[CategoryORM] = await self.session.scalars(
+        result = await self.session.scalars(
             select(CategoryORM).order_by(CategoryORM.created_at.desc())
         )
+        rows = result.all()
         return [row.to_entity() for row in rows]
 
     async def get(self, cat_id: int) -> Category | None:
@@ -85,7 +86,7 @@ class SQLArticleRepo:
         category_id: int | None = None,
         limit: int = 20,
         offset: int = 0,
-    ) -> Tuple[list[Article], int]:
+    ) -> tuple[list[Article], int]:
         stmt = (
             select(ArticleORM)
             .options(selectinload(ArticleORM.category))
@@ -101,11 +102,12 @@ class SQLArticleRepo:
             )
 
         total_stmt = select(func.count()).select_from(stmt.subquery())
-        total: int = await self.session.scalar(total_stmt)
+        total = cast(int, await self.session.scalar(total_stmt))
 
-        rows: Sequence[ArticleORM] = await self.session.scalars(
+        result = await self.session.scalars(
             stmt.order_by(ArticleORM.created_at.desc()).limit(limit).offset(offset)
         )
+        rows = result.all()
         return [row.to_entity() for row in rows], total
 
     async def update(self, article: Article) -> None:
@@ -116,8 +118,8 @@ class SQLArticleRepo:
                 title=article.title,
                 content=article.content,
                 image_url=article.image_url,
-                category_id=article.category.id,
-                updated_at=datetime.utcnow(),
+                category_id=article.category_id,
+                updated_at=datetime.now(UTC),
             )
         )
 
@@ -125,12 +127,12 @@ class SQLArticleRepo:
         self, art_id: int, deleted_at: datetime | None = None
     ) -> None:
         if deleted_at is None:
-            deleted_at = datetime.utcnow()
+            deleted_at = datetime.now(UTC)
         await self.session.execute(
             update(ArticleORM)
             .where(ArticleORM.id == art_id)
             .values(is_deleted=True, updated_at=deleted_at)
         )
 
-    async def by_id(self, id_: int) -> Article | None:
-        return await self.get(id_)
+    async def by_id(self, id: int) -> Article | None:
+        return await self.get(id)

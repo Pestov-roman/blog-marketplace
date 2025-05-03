@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import cast
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
@@ -76,7 +77,7 @@ class ArticleORM(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     title: Mapped[str] = mapped_column(String(length=225), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
-    image_url: Mapped[str] = mapped_column(String(length=225), nullable=True)
+    image_url: Mapped[str | None] = mapped_column(String(length=225), nullable=True)
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -130,6 +131,6 @@ class ArticleDeletedORM(Base):
             created_at=self.deleted_at,
             updated_at=self.deleted_at,
             is_deleted=True,
-            author_id=None,  # type: ignore
-            category_id=None,  # type: ignore
+            author_id=cast(UUID, None),
+            category_id=None,
         )

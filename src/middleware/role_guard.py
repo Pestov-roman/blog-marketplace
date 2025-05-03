@@ -21,6 +21,11 @@ class RoleGuardMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         try:
             payload = verify_token(token)
+            if payload is None:
+                return JSONResponse(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    content={"detail": "Invalid token"},
+                )
             request.state.user = {
                 "id": payload["sub"],
                 "roles": Role.from_str(payload["role"]),
