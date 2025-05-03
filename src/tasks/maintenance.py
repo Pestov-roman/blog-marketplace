@@ -11,7 +11,7 @@ engine = create_async_engine(settings.sqlalchemy_database_uri, echo=False)
 async_session = async_sessionmaker(engine, expire_on_commit=False)
 
 
-@shared_task(name="maintenance.cleanup_deleted_articles")
+@shared_task(name="maintenance.cleanup_deleted_articles")  # type: ignore[misc]
 async def cleanup_deleted_articles(days: int = 30) -> None:
     import asyncio
 

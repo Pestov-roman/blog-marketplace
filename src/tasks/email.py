@@ -11,4 +11,4 @@ def send_registration_email(to: str) -> None:
         "<h3>Добро пожаловать!</h3>"
         "<p>Вы успешно зарегистрированы в блоге маркетплейса.</p>"
     )
-    asyncio.run(send_email([to], "Регистрация успешна", html))
+    asyncio.run(send_email("Регистрация успешна", html, [to]))

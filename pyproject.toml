@@ -27,6 +27,7 @@ python-multipart = "^0.0.20"
 alembic = "^1.15.2"
 psycopg2-binary = "^2.9.9"
 async-asgi-testclient = "^1.4.11"
+bcrypt = "^4.3.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.3.0"
@@ -38,6 +39,7 @@ alembic = "^1.15.2"
 psycopg2-binary = "^2.9.10"
 mypy = "^1.15.0"
 types-requests = "^2.32.0.20250328"
+mypy-boto3-s3 = "^1.38.0"
 
 [tool.ruff]
 line-length = 88

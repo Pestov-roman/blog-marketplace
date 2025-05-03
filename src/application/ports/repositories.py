@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from typing import Protocol
+from uuid import UUID
 
 from src.domain.models import Article, Category, User
 
@@ -9,6 +10,7 @@ from src.domain.models import Article, Category, User
 class UserRepository(Protocol):
     async def add(self, user: User) -> None: ...
     async def by_email(self, email: str) -> User | None: ...
+    async def by_id(self, id: UUID) -> User | None: ...
 
 
 class CategoryRepository(Protocol):

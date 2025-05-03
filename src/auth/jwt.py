@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
-from typing import Any, cast
+from typing import Any
 
-from jose import jwt
+from jose import JWTError, jwt
 
 from src.auth.roles import Role
 from src.settings import settings
@@ -17,16 +17,11 @@ def create_access_token(user_id: str, role: Role | str) -> str:
         "role": role,
         "exp": datetime.utcnow() + timedelta(minutes=settings.jwt_expires_minutes),
     }
-    return cast(
-        str, jwt.encode(to_encode, settings.jwt_secret_key, algorithm=ALGORITHM)
-    )
+    return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=ALGORITHM)
 
 
 def verify_token(token: str) -> dict[str, Any] | None:
     try:
-        return cast(
-            dict[str, Any],
-            jwt.decode(token, settings.jwt_secret_key, algorithms=[ALGORITHM]),
-        )
-    except jwt.JWTError:
+        return jwt.decode(token, settings.jwt_secret_key, algorithms=[ALGORITHM])
+    except JWTError:
         return None

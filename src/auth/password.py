@@ -1,11 +1,10 @@
-from typing import cast
-
-from passlib.hash import bcrypt
+import bcrypt
 
 
 def hash_password(password: str) -> str:
-    return cast(str, bcrypt.hash(password))
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode(), salt).decode()
 
 
 def verify_password(password: str, hashed_password: str) -> bool:
-    return cast(bool, bcrypt.verify(password, hashed_password))
+    return bcrypt.checkpw(password.encode(), hashed_password.encode())

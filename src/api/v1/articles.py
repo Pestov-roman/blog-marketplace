@@ -3,9 +3,9 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from src.application.ports.uow import UnitOfWork
-from src.auth.dependencies import get_current_user, require_roles
+from src.auth.dependencies import UserWithRole, get_current_user, require_roles
 from src.auth.roles import Role
-from src.domain.models import Article
+from src.domain.models import Article, User
 from src.infrastructure.uow.sqlalchemy import get_uow
 from src.schemas.article import ArticleIn, ArticleOut
 
@@ -16,15 +16,16 @@ router = APIRouter(prefix="/articles", tags=["articles"])
 async def create_article(
     dto: ArticleIn,
     uow: UnitOfWork = Depends(get_uow),
-    user=Depends(get_current_user),
-    current_user=Depends(require_roles(Role.AUTHOR)),
+    user: UserWithRole = Depends(get_current_user),
+    current_user: User = Depends(require_roles(Role.AUTHOR)),
 ) -> Article:
+    user_instance = user["instance"]
     article = Article.create(
         title=dto.title,
         content=dto.content,
         image_url=dto.image_url,
         category_id=dto.category_id,
-        author_id=user["instance"].id,
+        author_id=user_instance.id,
     )
     await uow.articles.add(article)
     await uow.commit()
@@ -38,7 +39,7 @@ async def list_articles(
     page: int = Query(default=1, ge=1),
     size: int = Query(default=20, ge=1, le=100),
     uow: UnitOfWork = Depends(get_uow),
-    current_user=Depends(require_roles(Role.READER)),
+    current_user: User = Depends(require_roles(Role.READER)),
 ) -> list[Article]:
     offset = (page - 1) * size
     items, total = await uow.articles.list(
@@ -51,7 +52,7 @@ async def list_articles(
 async def delete_article(
     article_id: int,
     uow: UnitOfWork = Depends(get_uow),
-    current_user=Depends(require_roles(Role.AUTHOR, Role.ADMIN)),
+    current_user: User = Depends(require_roles(Role.AUTHOR, Role.ADMIN)),
 ) -> None:
     await uow.articles.soft_delete(article_id, datetime.utcnow())
     await uow.commit()
@@ -76,8 +77,8 @@ async def update_article(
     article_id: int,
     dto: ArticleIn,
     uow: UnitOfWork = Depends(get_uow),
-    user=Depends(get_current_user),
-    current_user=Depends(require_roles(Role.AUTHOR, Role.ADMIN)),
+    user: UserWithRole = Depends(get_current_user),
+    current_user: User = Depends(require_roles(Role.AUTHOR, Role.ADMIN)),
 ) -> Article:
     art = await uow.articles.get(article_id)
     if not art:
@@ -85,7 +86,8 @@ async def update_article(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Article not found",
         )
-    if art.author_id != user["instance"].id:
+    user_instance = user["instance"]
+    if art.author_id != user_instance.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You are not allowed to update this article",
