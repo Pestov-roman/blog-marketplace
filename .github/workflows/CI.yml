@@ -55,9 +55,11 @@ jobs:
         run: poetry install --no-interaction --with dev
 
       - name: Apply migrations
-        env:
-          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/marketplace_blog_test
         run: |
+          rm -f .env
+          export DB_HOST=localhost
+          export PG_HOST=localhost
+          export POSTGRES_HOST=localhost
           poetry run alembic upgrade head
 
       - name: Start MinIO
