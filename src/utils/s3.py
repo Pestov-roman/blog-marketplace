@@ -1,3 +1,4 @@
+from typing import cast
 from uuid import uuid4
 
 import boto3
@@ -13,12 +14,15 @@ def _get_client(endpoint_url: str | None = None) -> S3Client:
     global _SESSION
     if _SESSION is None:
         _SESSION = boto3.Session()
-    return _SESSION.client(  # type: ignore[return-value]
-        service_name="s3",
-        endpoint_url=endpoint_url or settings.s3_endpoint,
-        aws_access_key_id=settings.s3_access_key,
-        aws_secret_access_key=settings.s3_secret_key,
-        config=Config(signature_version="s3v4"),
+    return cast(
+        S3Client,
+        _SESSION.client(
+            service_name="s3",
+            endpoint_url=endpoint_url or settings.s3_endpoint,
+            aws_access_key_id=settings.s3_access_key,
+            aws_secret_access_key=settings.s3_secret_key,
+            config=Config(signature_version="s3v4"),
+        ),
     )
 
 
