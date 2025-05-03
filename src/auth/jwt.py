@@ -17,11 +17,15 @@ def create_access_token(user_id: str, role: Role | str) -> str:
         "role": role,
         "exp": datetime.utcnow() + timedelta(minutes=settings.jwt_expires_minutes),
     }
-    return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=ALGORITHM)
+    encoded: str = jwt.encode(to_encode, settings.jwt_secret_key, algorithm=ALGORITHM)
+    return encoded
 
 
 def verify_token(token: str) -> dict[str, Any] | None:
     try:
-        return jwt.decode(token, settings.jwt_secret_key, algorithms=[ALGORITHM])
+        decoded: dict[str, Any] = jwt.decode(
+            token, settings.jwt_secret_key, algorithms=[ALGORITHM]
+        )
+        return decoded
     except JWTError:
         return None
