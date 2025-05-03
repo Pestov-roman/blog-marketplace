@@ -62,6 +62,9 @@ jobs:
       - name: Run tests
         run: poetry run pytest
 
+      - name: Remove .env for CI
+        run: rm -f .env
+
       - name: Run migrations
         env:
           DB_HOST: localhost
