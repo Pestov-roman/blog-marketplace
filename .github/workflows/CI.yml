@@ -52,7 +52,7 @@ jobs:
       - name: Install Poetry
         uses: abatilo/actions-poetry@v3
         with:
-          poetry-version: 1.8.2
+          poetry-version: 2.1.1
 
       - name: Cache venv
         uses: actions/cache@v4
@@ -69,6 +69,14 @@ jobs:
         run: |
           poetry run alembic upgrade head
 
+      - name: Initialize MinIO
+        env:
+          MINIO_ENDPOINT: http://localhost:9000
+          MINIO_ACCESS_KEY: minio
+          MINIO_SECRET_KEY: minio123
+        run: |
+          poetry run python -m src.scripts.init_s3
+
       - name: Run Linters
         run: |
           poetry run ruff check src
@@ -80,5 +88,6 @@ jobs:
           MINIO_ENDPOINT: http://localhost:9000
           MINIO_ACCESS_KEY: minio
           MINIO_SECRET_KEY: minio123
+          RABBITMQ_URL: amqp://guest:guest@localhost:5672
         run: |
           poetry run pytest -q
