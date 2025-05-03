@@ -2,7 +2,7 @@ from uuid import uuid4
 
 import boto3
 from botocore.client import Config
-from types_boto3_s3.client import S3Client
+from mypy_boto3_s3 import S3Client
 
 from src.settings import settings
 
@@ -13,7 +13,7 @@ def _get_client(endpoint_url: str | None = None) -> S3Client:
     global _SESSION
     if _SESSION is None:
         _SESSION = boto3.Session()
-    return _SESSION.client(
+    return _SESSION.client(  # type: ignore[return-value]
         service_name="s3",
         endpoint_url=endpoint_url or settings.s3_endpoint,
         aws_access_key_id=settings.s3_access_key,
