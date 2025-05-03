@@ -60,6 +60,7 @@ jobs:
           export DB_HOST=localhost
           export PG_HOST=localhost
           export POSTGRES_HOST=localhost
+          export POSTGRES_DB=marketplace_blog_test
           poetry run alembic upgrade head
 
       - name: Start MinIO

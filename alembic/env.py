@@ -28,18 +28,20 @@ target_metadata = Base.metadata
 
 
 def get_url():
-    # В CI используем localhost, в Docker - db
     db_host = (
         os.getenv("DB_HOST")
         or os.getenv("POSTGRES_HOST")
         or os.getenv("PG_HOST")
         or "db"
     )
+    db_name = os.getenv("PG_DB") or os.getenv("POSTGRES_DB") or "marketplace_blog"
     print("DB_HOST:", os.getenv("DB_HOST"))
     print("POSTGRES_HOST:", os.getenv("POSTGRES_HOST"))
     print("PG_HOST:", os.getenv("PG_HOST"))
-    print("URL:", f"postgresql://postgres:postgres@{db_host}:5432/marketplace_blog")
-    return f"postgresql://postgres:postgres@{db_host}:5432/marketplace_blog"
+    print("POSTGRES_DB:", os.getenv("POSTGRES_DB"))
+    print("PG_DB:", os.getenv("PG_DB"))
+    print("URL:", f"postgresql://postgres:postgres@{db_host}:5432/{db_name}")
+    return f"postgresql://postgres:postgres@{db_host}:5432/{db_name}"
 
 
 def run_migrations_offline() -> None:
