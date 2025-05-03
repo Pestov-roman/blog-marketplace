@@ -4,7 +4,7 @@ from src.application.ports.uow import UnitOfWork
 from src.auth.dependencies import require_roles
 from src.auth.roles import Role
 from src.domain.models import Category, User
-from src.infrastructure.uow.sqlalchemy import get_uow
+from src.infrastructure.di import get_uow
 from src.schemas.category import CategoryIn, CategoryOut
 
 router = APIRouter(prefix="/categories", tags=["categories"])

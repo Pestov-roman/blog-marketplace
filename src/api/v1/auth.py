@@ -1,3 +1,7 @@
+import asyncio
+import logging
+import socket
+
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from src.application.ports.uow import UnitOfWork
@@ -5,10 +9,23 @@ from src.auth.jwt import create_access_token
 from src.auth.password import verify_password
 from src.auth.schemas import LoginIn, TokenOut
 from src.domain.models import User
-from src.infrastructure.uow.sqlalchemy import get_uow
+from src.infrastructure.di import get_uow
+from src.settings import settings
 from src.tasks.email import send_registration_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+@router.get("/health/rabbitmq")
+async def rabbitmq_health():
+    try:
+        host = settings.rabbitmq_host
+        port = settings.rabbitmq_port
+        with socket.create_connection((host, port), timeout=5):
+            return {"status": "ok"}
+    except Exception as e:
+        logging.error(f"RabbitMQ healthcheck failed: {e}")
+        return {"status": "fail", "error": str(e)}
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED, response_model=TokenOut)
@@ -20,7 +37,13 @@ async def register(
     user = User.create(dto.email, dto.password)
     await uow.users.add(user)
     await uow.commit()
-    send_registration_email.delay(user.email)
+    for i in range(3):
+        try:
+            send_registration_email.delay(user.email)
+            break
+        except Exception as e:
+            logging.error(f"Celery send failed (attempt {i+1}): {e}")
+            await asyncio.sleep(2)
     token = create_access_token(str(user.id), user.role)
     response.set_cookie("access_token", token, httponly=True)
     return TokenOut(access_token=token, token_type="bearer")

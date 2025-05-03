@@ -53,7 +53,7 @@ class Settings(BaseSettings):
         creds = ""
         if self.rabbitmq_user and self.rabbitmq_password:
             creds = f"{self.rabbitmq_user}:{self.rabbitmq_password}@"
-        return f"ampq://{creds}{self.rabbitmq_host}:{self.rabbitmq_port}//"
+        return f"amqp://{creds}{self.rabbitmq_host}:{self.rabbitmq_port}//"
 
 
 @lru_cache(maxsize=1)

@@ -5,12 +5,14 @@ import pytest
 import pytest_asyncio
 from async_asgi_testclient import TestClient
 from fastapi import FastAPI
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from src.app.main import app as real_app
 from src.infrastructure.celery_app import celery_app
+from src.infrastructure.di import get_uow
 from src.infrastructure.orm import Base
-from src.infrastructure.uow.sqlalchemy import SQLAlchemyUoW, get_uow
+from src.infrastructure.uow.sqlalchemy import SQLAlchemyUoW
 from src.settings import settings
 
 
@@ -37,13 +39,22 @@ async def _engine():
 
 
 @pytest_asyncio.fixture
-async def session(async_session_maker) -> AsyncSession:
-    async with async_session_maker() as session:
-        async with session.begin():
-            for table in reversed(Base.metadata.sorted_tables):
-                await session.execute(table.delete())
-            await session.commit()
+async def db_session(_engine):
+    async_session = async_sessionmaker(
+        _engine, class_=AsyncSession, expire_on_commit=False
+    )
+    async with async_session() as session:
         yield session
+
+
+@pytest_asyncio.fixture
+async def session(db_session):
+    # Очищаем базу перед каждым тестом
+    await db_session.execute(text("DELETE FROM users"))
+    await db_session.execute(text("DELETE FROM articles"))
+    await db_session.execute(text("DELETE FROM categories"))
+    await db_session.commit()
+    yield db_session
 
 
 @pytest.fixture

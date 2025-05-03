@@ -6,7 +6,7 @@ from src.application.ports.uow import UnitOfWork
 from src.auth.dependencies import UserWithRole, get_current_user, require_roles
 from src.auth.roles import Role
 from src.domain.models import Article, User
-from src.infrastructure.uow.sqlalchemy import get_uow
+from src.infrastructure.di import get_uow
 from src.schemas.article import ArticleIn, ArticleOut
 
 router = APIRouter(prefix="/articles", tags=["articles"])

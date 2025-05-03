@@ -12,7 +12,7 @@ from src.application.ports.uow import UnitOfWork
 from src.auth.jwt import verify_token
 from src.auth.roles import Role
 from src.domain.models import User
-from src.infrastructure.uow.sqlalchemy import get_uow
+from src.infrastructure.di import get_uow
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 header_scheme = HTTPBearer(auto_error=False)

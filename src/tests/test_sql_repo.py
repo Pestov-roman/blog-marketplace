@@ -1,28 +1,9 @@
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.roles import Role
 from src.domain.models import User
-from src.infrastructure.orm import Base
 from src.infrastructure.uow.sqlalchemy import SQLAlchemyUoW
-
-
-@pytest.fixture
-async def session():
-    eng = create_async_engine(
-        "sqlite+aiosqlite:///:memory:",
-        echo=False,
-    )
-    async with eng.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    session_maker = async_sessionmaker(
-        eng,
-        expire_on_commit=False,
-    )
-
-    async with session_maker() as session:
-        yield session
 
 
 @pytest.mark.asyncio
