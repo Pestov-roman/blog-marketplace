@@ -32,20 +32,6 @@ jobs:
           --health-timeout=5s
           --health-retries=5
 
-      minio:
-        image: minio/minio
-        env:
-          MINIO_ACCESS_KEY: minio
-          MINIO_SECRET_KEY: minio123
-        ports: ["9000:9000", "9001:9001"]
-        options: >-
-          --entrypoint /bin/sh
-          --health-cmd="curl -f http://localhost:9000/minio/health/live || exit 1"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-          -c "minio server /data --console-address ':9001'"
-
     steps:
       - uses: actions/checkout@v4
 
@@ -73,6 +59,18 @@ jobs:
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/marketplace_blog_test
         run: |
           poetry run alembic upgrade head
+
+      - name: Start MinIO
+        run: |
+          docker run -d --name minio -p 9000:9000 -p 9001:9001 \
+            -e MINIO_ACCESS_KEY=minio \
+            -e MINIO_SECRET_KEY=minio123 \
+            minio/minio server /data --console-address ":9001"
+          for i in {1..30}; do
+            if curl -s http://localhost:9000/minio/health/live; then break; fi
+            echo "waiting for minio..."
+            sleep 1
+          done
 
       - name: Initialize MinIO
         env:
