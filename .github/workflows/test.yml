@@ -66,6 +66,8 @@ jobs:
         run: rm -f .env
 
       - name: Run migrations
-        env:
-          DB_HOST: localhost
-        run: poetry run alembic upgrade head
+        run: |
+          export DB_HOST=localhost
+          export PG_HOST=localhost
+          export POSTGRES_HOST=localhost
+          poetry run alembic upgrade head
