@@ -35,6 +35,10 @@ def get_url():
         or os.getenv("PG_HOST")
         or "db"
     )
+    print("DB_HOST:", os.getenv("DB_HOST"))
+    print("POSTGRES_HOST:", os.getenv("POSTGRES_HOST"))
+    print("PG_HOST:", os.getenv("PG_HOST"))
+    print("URL:", f"postgresql://postgres:postgres@{db_host}:5432/marketplace_blog")
     return f"postgresql://postgres:postgres@{db_host}:5432/marketplace_blog"
 
 
