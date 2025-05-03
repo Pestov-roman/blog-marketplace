@@ -40,6 +40,7 @@ psycopg2-binary = "^2.9.10"
 mypy = "^1.15.0"
 types-requests = "^2.32.0.20250328"
 mypy-boto3-s3 = "^1.38.0"
+aiosqlite = "^0.21.0"
 
 [tool.ruff]
 line-length = 88

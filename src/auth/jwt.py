@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from jose import JWTError, jwt
@@ -15,7 +15,7 @@ def create_access_token(user_id: str, role: Role | str) -> str:
     to_encode = {
         "sub": str(user_id),
         "role": role,
-        "exp": datetime.utcnow() + timedelta(minutes=settings.jwt_expires_minutes),
+        "exp": datetime.now(UTC) + timedelta(minutes=settings.jwt_expires_minutes),
     }
     encoded: str = jwt.encode(to_encode, settings.jwt_secret_key, algorithm=ALGORITHM)
     return encoded

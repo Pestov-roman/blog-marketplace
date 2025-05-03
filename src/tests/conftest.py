@@ -22,10 +22,9 @@ def async_session_maker(
 
 
 @pytest.fixture(scope="session")
-def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
+def event_loop_policy() -> Generator[asyncio.AbstractEventLoopPolicy, None, None]:
+    policy = asyncio.DefaultEventLoopPolicy()
+    yield policy
 
 
 @pytest_asyncio.fixture(scope="session")
