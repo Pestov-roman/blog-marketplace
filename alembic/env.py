@@ -29,7 +29,12 @@ target_metadata = Base.metadata
 
 def get_url():
     # В CI используем localhost, в Docker - db
-    db_host = os.getenv("DB_HOST") or os.getenv("POSTGRES_HOST") or "db"
+    db_host = (
+        os.getenv("DB_HOST")
+        or os.getenv("POSTGRES_HOST")
+        or os.getenv("PG_HOST")
+        or "db"
+    )
     return f"postgresql://postgres:postgres@{db_host}:5432/marketplace_blog"
 
 
