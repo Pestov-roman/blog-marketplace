@@ -86,7 +86,7 @@ services:
     build: .
     env_file: .env
     environment:
-      DB_HOST: ${DB_HOST:-db}
+      PG_HOST: ${PG_HOST:-db}
     command: poetry run alembic upgrade head
     depends_on:
       db: { condition: service_healthy }
