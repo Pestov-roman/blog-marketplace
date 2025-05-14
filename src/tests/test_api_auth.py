@@ -20,5 +20,6 @@ async def test_login_and_protected_endpoint(client: AsyncClient, session):
     assert resp.status_code == 200
     token = resp.json()["access_token"]
 
-    resp = await client.get("/api/v1/categories", headers={"Authorization": f"Bearer {token}"})
+    headers = {"Authorization": f"Bearer {token}"}
+    resp = await client.get("/api/v1/categories", headers=headers)
     assert resp.status_code == 200
