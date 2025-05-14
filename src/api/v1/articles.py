@@ -17,7 +17,7 @@ async def create_article(
     dto: ArticleIn,
     uow: UnitOfWork = Depends(get_uow),
     user: UserWithRole = Depends(get_current_user),
-    current_user: User = Depends(require_roles(Role.AUTHOR)),
+    current_user: User = Depends(require_roles(Role.AUTHOR, Role.ADMIN)),
 ) -> Article:
     user_instance = user["instance"]
     article = Article.create(

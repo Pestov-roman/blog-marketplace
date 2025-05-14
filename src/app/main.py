@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 from fastapi.responses import JSONResponse
 
 from src.api.v1 import articles, auth, categories, uploads
@@ -12,10 +12,15 @@ configure_logging()
 app = FastAPI(title="Blog Marketplace", version="0.1.0", debug=settings.debug)
 app.add_middleware(ErrorMiddleware)
 app.add_middleware(AuthMiddleware)
-app.include_router(auth.router)
-app.include_router(categories.router)
-app.include_router(articles.router)
-app.include_router(uploads.router)
+
+api_v1_router = APIRouter(prefix="/api/v1")
+
+api_v1_router.include_router(auth.router)
+api_v1_router.include_router(categories.router)
+api_v1_router.include_router(articles.router)
+api_v1_router.include_router(uploads.router)
+
+app.include_router(api_v1_router)
 
 
 @app.get("/health")

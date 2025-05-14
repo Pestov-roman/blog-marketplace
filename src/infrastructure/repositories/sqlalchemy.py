@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import cast
 from uuid import UUID
 
@@ -12,7 +12,7 @@ from src.domain.models import Article, Category, User
 from src.infrastructure.orm import ArticleORM, CategoryORM, UserORM
 
 
-class SQLUserRepo:
+class UserRepo:
     def __init__(self, session: AsyncSession):
         self.session = session
 
@@ -29,9 +29,7 @@ class SQLUserRepo:
         return row.to_entity() if row else None
 
 
-class SQLCategoryRepo:
-    """SQLAlchemy-репозиторий категорий."""
-
+class CategoryRepo:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
@@ -56,9 +54,7 @@ class SQLCategoryRepo:
         await self.session.execute(delete(CategoryORM).where(CategoryORM.id == cat_id))
 
 
-class SQLArticleRepo:
-    """SQLAlchemy-репозиторий статей с FTS и soft-delete."""
-
+class ArticleRepo:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
@@ -119,7 +115,7 @@ class SQLArticleRepo:
                 content=article.content,
                 image_url=article.image_url,
                 category_id=article.category_id,
-                updated_at=datetime.now(UTC),
+                updated_at=datetime.now(),
             )
         )
 
@@ -127,7 +123,7 @@ class SQLArticleRepo:
         self, art_id: int, deleted_at: datetime | None = None
     ) -> None:
         if deleted_at is None:
-            deleted_at = datetime.now(UTC)
+            deleted_at = datetime.now()
         await self.session.execute(
             update(ArticleORM)
             .where(ArticleORM.id == art_id)

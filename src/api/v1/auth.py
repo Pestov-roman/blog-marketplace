@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from src.application.ports.uow import UnitOfWork
 from src.auth.jwt import create_access_token
 from src.auth.password import verify_password
+from src.auth.roles import Role
 from src.auth.schemas import LoginIn, TokenOut
 from src.domain.models import User
 from src.infrastructure.di import get_uow
@@ -34,7 +35,29 @@ async def register(
     response: Response,
     uow: UnitOfWork = Depends(get_uow),
 ) -> TokenOut:
-    user = User.create(dto.email, dto.password)
+    role = dto.role if dto.role else Role.READER
+    user = User.create(dto.email, dto.password, role)
+    await uow.users.add(user)
+    await uow.commit()
+    for i in range(3):
+        try:
+            send_registration_email.delay(user.email)
+            break
+        except Exception as e:
+            logging.error(f"Celery send failed (attempt {i+1}): {e}")
+            await asyncio.sleep(2)
+    token = create_access_token(str(user.id), user.role)
+    response.set_cookie("access_token", token, httponly=True)
+    return TokenOut(access_token=token, token_type="bearer")
+
+
+@router.post("/register/author", status_code=status.HTTP_201_CREATED, response_model=TokenOut)
+async def register_author(
+    dto: LoginIn,
+    response: Response,
+    uow: UnitOfWork = Depends(get_uow),
+) -> TokenOut:
+    user = User.create(dto.email, dto.password, Role.AUTHOR)
     await uow.users.add(user)
     await uow.commit()
     for i in range(3):

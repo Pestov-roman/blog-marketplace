@@ -4,22 +4,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.application.ports.uow import UnitOfWork
 from src.infrastructure.repositories.sqlalchemy import (
-    SQLArticleRepo,
-    SQLCategoryRepo,
-    SQLUserRepo,
+    ArticleRepo,
+    CategoryRepo,
+    UserRepo,
 )
 
 
 class SQLAlchemyUoW(UnitOfWork):
-    users: SQLUserRepo
-    categories: SQLCategoryRepo
-    articles: SQLArticleRepo
+    users: UserRepo
+    categories: CategoryRepo
+    articles: ArticleRepo
 
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
-        self.users = SQLUserRepo(session)
-        self.categories = SQLCategoryRepo(session)
-        self.articles = SQLArticleRepo(session)
+        self.users = UserRepo(session)
+        self.categories = CategoryRepo(session)
+        self.articles = ArticleRepo(session)
 
     async def __aenter__(self) -> "SQLAlchemyUoW":
         return self

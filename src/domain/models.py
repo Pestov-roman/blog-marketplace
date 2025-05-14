@@ -32,9 +32,8 @@ class User(BaseModel):
 
 class Category(BaseModel):
     id: int | None
-    # принимаем и title, и name (alias)
     title: str = Field(alias="name")
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now())
 
     model_config = {"populate_by_name": True}
 
@@ -50,8 +49,8 @@ class Article(BaseModel):
     author_id: UUID
     category_id: int | None
     image_url: str | None = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(default_factory=lambda: datetime.now())
+    updated_at: datetime = Field(default_factory=lambda: datetime.now())
     is_deleted: bool = False
 
     model_config = {"from_attributes": True}
@@ -66,7 +65,7 @@ class Article(BaseModel):
         category_id: int | None = None,
         image_url: str | None = None,
     ) -> "Article":
-        now = datetime.now(UTC)
+        now = datetime.now()
         return cls(
             id=None,
             title=title.strip(),
