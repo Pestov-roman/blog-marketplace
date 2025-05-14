@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import APIRouter, FastAPI
 from fastapi.responses import JSONResponse
 
 from src.api.v1 import articles, auth, categories, uploads

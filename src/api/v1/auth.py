@@ -51,7 +51,11 @@ async def register(
     return TokenOut(access_token=token, token_type="bearer")
 
 
-@router.post("/register/author", status_code=status.HTTP_201_CREATED, response_model=TokenOut)
+@router.post(
+    "/register/author", 
+    status_code=status.HTTP_201_CREATED, 
+    response_model=TokenOut
+)
 async def register_author(
     dto: LoginIn,
     response: Response,
