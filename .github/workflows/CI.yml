@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "dev", "feature/**"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: marketplace_blog_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      rabbitmq:
+        image: rabbitmq:3-management
+        ports: ["5672:5672"]
+        options: >-
+          --health-cmd="rabbitmq-diagnostics check_port_connectivity"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v3
+        with:
+          poetry-version: 2.1.1
+
+      - name: Cache venv
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('pyproject.toml') }}
+
+      - name: Install deps
+        run: poetry install --no-interaction --with dev
+
+      - name: Apply migrations
+        run: |
+          rm -f .env
+          export DB_HOST=localhost
+          export PG_HOST=localhost
+          export POSTGRES_HOST=localhost
+          export POSTGRES_DB=marketplace_blog_test
+          poetry run alembic upgrade head
+
+      - name: Start MinIO
+        run: |
+          docker run -d --name minio -p 9000:9000 -p 9001:9001 \
+            -e MINIO_ACCESS_KEY=minio \
+            -e MINIO_SECRET_KEY=minio123 \
+            minio/minio server /data --console-address ":9001"
+          for i in {1..30}; do
+            if curl -s http://localhost:9000/minio/health/live; then break; fi
+            echo "waiting for minio..."
+            sleep 1
+          done
+
+      - name: Initialize MinIO
+        env:
+          APP_ENV: ci
+          S3_ENDPOINT: http://localhost:9000
+          S3_ACCESS_KEY: minio
+          S3_SECRET_KEY: minio123
+          S3_BUCKET: images
+        run: |
+          poetry run python -m src.scripts.init_s3
+
+      - name: Run Linters
+        run: |
+          poetry run ruff check src
+          poetry run mypy src
+
+      - name: Run Tests
+        env:
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/marketplace_blog_test
+          MINIO_ENDPOINT: http://localhost:9000
+          MINIO_ACCESS_KEY: minio
+          MINIO_SECRET_KEY: minio123
+          RABBITMQ_URL: amqp://guest:guest@localhost:5672
+        run: |
+          poetry run pytest -q
