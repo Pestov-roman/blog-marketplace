@@ -18,7 +18,7 @@ async def test_create_and_get_article(client: AsyncClient, session):
 
     token = (
         await client.post(
-            "/auth/login",
+            "/api/v1/auth/login",
             json={"email": "a@b.c", "password": "pwd"},
         )
     ).json()["access_token"]
@@ -31,13 +31,13 @@ async def test_create_and_get_article(client: AsyncClient, session):
     }
 
     resp = await client.post(
-        "/articles",
+        "/api/v1/articles",
         json=article_data,
         headers={"Authorization": f"Bearer {token}"},
     )
     assert resp.status_code == 201
     article_id = resp.json()["id"]
 
-    resp = await client.get(f"/articles/{article_id}")
+    resp = await client.get(f"/api/v1/articles/{article_id}")
     assert resp.status_code == 200
     assert resp.json()["title"] == article_data["title"]

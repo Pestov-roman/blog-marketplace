@@ -14,11 +14,11 @@ async def test_login_and_protected_endpoint(client: AsyncClient, session):
     await uow.commit()
 
     resp = await client.post(
-        "/auth/login",
+        "/api/v1/auth/login",
         json={"email": "admin@site.com", "password": "secret"},
     )
     assert resp.status_code == 200
     token = resp.json()["access_token"]
 
-    resp = await client.get("/categories", headers={"Authorization": f"Bearer {token}"})
+    resp = await client.get("/api/v1/categories", headers={"Authorization": f"Bearer {token}"})
     assert resp.status_code == 200
