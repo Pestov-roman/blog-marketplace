@@ -40,7 +40,13 @@ async def register(
             status_code=status.HTTP_409_CONFLICT,
             detail="Пользователь с таким email уже существует"
         )
-    role = dto.role if dto.role else Role.READER
+    try:
+        role = Role.from_str(dto.role) if dto.role else Role.READER
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Несуществующая роль"
+        )
     user = User.create(dto.email, dto.password, role)
     await uow.users.add(user)
     await uow.commit()
