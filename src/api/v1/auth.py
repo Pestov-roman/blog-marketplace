@@ -53,34 +53,6 @@ async def register(
     return TokenOut(access_token=token, token_type="bearer")
 
 
-@router.post(
-    "/register/author", 
-    status_code=status.HTTP_201_CREATED, 
-    response_model=TokenOut
-)
-async def register_author(
-    dto: LoginIn,
-    response: Response,
-    uow: UnitOfWork = Depends(get_uow),
-) -> TokenOut:
-    existing_user = await uow.users.by_email(dto.email)
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Пользователь с таким email уже существует"
-        )
-    user = User.create(dto.email, dto.password, Role.AUTHOR)
-    await uow.users.add(user)
-    await uow.commit()
-    try:
-        send_registration_email.delay(user.email)
-    except Exception as e:
-        logging.error(f"Failed to send registration email: {e}")
-    token = create_access_token(str(user.id), user.role)
-    response.set_cookie("access_token", token, httponly=True)
-    return TokenOut(access_token=token, token_type="bearer")
-
-
 @router.post("/login", response_model=TokenOut)
 async def login(
     dto: LoginIn,
