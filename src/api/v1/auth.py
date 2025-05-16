@@ -42,11 +42,11 @@ async def register(
         )
     try:
         role = Role.from_str(dto.role) if dto.role else Role.READER
-    except ValueError:
+    except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Несуществующая роль"
-        )
+        ) from e
     user = User.create(dto.email, dto.password, role)
     await uow.users.add(user)
     await uow.commit()
